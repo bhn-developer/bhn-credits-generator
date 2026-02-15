@@ -156,7 +156,7 @@ async function generate(){
     mediaRecorder.start();
     
     const lineHeight = 20;
-    const maxScroll = (contentLines.value.length * lineHeight) - state.output_video_height + (state.include_scrollin_and_out ? state.output_video_height * 2 : 0);
+    const maxScroll = (contentLines.value.at(-1).y) - state.output_video_height + (state.include_scrollin_and_out ? state.output_video_height * 2 : 0);
     const scrollStep = 1; // pixels per frame (slower = smoother)
     
     const scrollAndRecord = () => {
