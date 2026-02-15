@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="generator" :class="{ showFullScroll: state.show_full_scroll }">
         <h1>Generator</h1>
 
         <div v-if="!state.isGenerating">
@@ -17,6 +17,8 @@
                 <input type="checkbox" v-model="state.include_scrollin_and_out">
                 Include scroll in/out
             </label>
+
+            max scroll {{ state.max_scroll_position }}
              
             <button type="button" @click="generate()">Generate</button>
         </div>
@@ -25,14 +27,18 @@
             <button @click="stopGeneration()">Stop</button>
         </div>
 
+        <div v-else>
+            <label><input type="checkbox" v-model="state.show_full_scroll"> Show full scroll</label>
+        </div>
+
         <div class="preview-window">
-            <svg :viewBox="`0 0 640 ${640 * state.output_video_height / state.output_video_width}`" xmlns="http://www.w3.org/2000/svg" ref="svg">
-                <rect :width="state.output_video_width" :height="state.output_video_height + (state.include_scrollin_and_out ? state.output_video_height * 2 : 0)" fill="black"/>
+            <svg :viewBox="`0 0 640 ${!state.isGenerating && state.show_full_scroll ? state.max_scroll_position + (state.include_scrollin_and_out ? 640 * state.output_video_height / state.output_video_width * 2 : 0) : 640 * state.output_video_height / state.output_video_width}`" xmlns="http://www.w3.org/2000/svg" ref="svg">
+                <rect :width="state.output_video_width" :height="state.max_scroll_position + (state.include_scrollin_and_out ? 640 * state.output_video_height / state.output_video_width * 2 : 0)" fill="black"/>
                 <g ref="textGroup">                    
                     <text 
                         v-for="(item, index) in contentLines" 
                         :key="index"
-                        :y="item.y - state.scrollPosition + (state.include_scrollin_and_out ? state.output_video_height : 0)"
+                        :y="item.y - state.scrollPosition + (state.include_scrollin_and_out ? 640 * state.output_video_height / state.output_video_width : 0)"
                         :x="item.x"
                         fill="white"
                         font-family="system-ui"
@@ -52,13 +58,14 @@
 
 <script setup>
 import { reactive, onMounted, ref, computed } from "vue";
-import { generateFakeScrollerContent } from "./faker";
 
 const state = reactive({
     scrollerContent: '',
     isGenerating: false,
     cancel_generation: false,
     scrollPosition: 0,
+    max_scroll_position: 0,
+    show_full_scroll: false,
 
     scroll_speed: 1, // pixels per frame
     include_scrollin_and_out: true,
@@ -80,6 +87,9 @@ const contentLines = computed(() => {
         const fontSize = item[0]?.['font-size'] || 16;
         const text = item[1] || '\u00A0';
         y += fontSize * 1.4; // Approximate line height
+        if(y > state.max_scroll_position) {
+            state.max_scroll_position = y;
+        }
         return {
             text,
             y,
@@ -116,7 +126,6 @@ async function generate(){
     state.scrollPosition = 0;
     recordedChunks = [];
     
-    state.scrollerContent = generateFakeScrollerContent();
     
     // Wait for DOM to update
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -235,4 +244,11 @@ canvas {
         max-height:100%;
     }
 }
+
+.showFullScroll {
+    .preview-window {
+        height: auto;
+    }
+}
+
 </style>

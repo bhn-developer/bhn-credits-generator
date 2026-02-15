@@ -3,7 +3,7 @@
     <div class="steps">
       <div @click="step = 'patreon'" :class="{ current: step === 'patreon' }">Step 1</div>
       <div @click="step === 'generator' ? step = 'template' : ''" :class="{ current: step === 'template' }">Step 2</div>
-      <div :class="{ current: step === 'generator' }">Step 3</div>
+      <div @click="step = 'generator'" :class="{ current: step === 'generator' }">Step 3</div>
     </div>
 
     <Patreon v-if="step === 'patreon'" @updateList="updateList($event)" />
