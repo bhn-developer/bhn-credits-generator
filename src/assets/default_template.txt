@@ -1,33 +1,33 @@
-{ "font-size": 56, "font-weight": "bold" };Executive Producer
+{ "font-size": 60, "font-weight": "bold" };Executive Producer
 
-{ "font-size": 56 };[Executive Producer]
-{ "font-size": 56 };
+{ "font-size": 60 };[Executive Producer]
+{ "font-size": 60 };
 
-{ "font-size": 36, "font-weight": "bold" };Senior Producer
+{ "font-size": 44, "font-weight": "bold" };Senior Producer
 
-{ "font-size": 36 };[Senior Producer]
-{ "font-size": 36 };
+{ "font-size": 44 };[Senior Producer]
+{ "font-size": 44 };
 
-{ "font-size": 30, "font-weight": "bold" };Producer
+{ "font-size": 31, "font-weight": "bold" };Producer
 
-{ "font-size": 30 };[Producer]
-{ "font-size": 30 };
+{ "font-size": 31 };[Producer]
+{ "font-size": 31 };
 
-{ "font-size": 26, "font-weight": "bold" };Super Patron
+{ "font-size": 18, "font-weight": "bold" };Super Patron
 
-{ "font-size": 26 };[Super Patron]
-{ "font-size": 26 };
-
-{ "font-size": 22, "font-weight": "bold" };Patron
-
-{ "font-size": 22 };[Patron]
-{ "font-size": 22 };
-
-{ "font-size": 18, "font-weight": "bold" };Double Shot
-
-{ "font-size": 18 };[Double Shot]
+{ "font-size": 18 };[Super Patron]
 { "font-size": 18 };
 
-{ "font-size": 16, "font-weight": "bold" };Coffee Runner
+{ "font-size": 14.5, "font-weight": "bold" };Patron
 
-{ "font-size": 16 };[Coffee Runner]
+{ "font-size": 14.5 };[Patron]
+{ "font-size": 14.5 };
+
+{ "font-size": 11, "font-weight": "bold" };Double Shot
+
+{ "font-size": 11 };[Double Shot]
+{ "font-size": 11 };
+
+{ "font-size": 7.5, "font-weight": "bold" };Coffee Runner
+
+{ "font-size": 7.5 };[Coffee Runner]

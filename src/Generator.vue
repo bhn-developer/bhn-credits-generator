@@ -8,19 +8,39 @@
                 <button type="button" @click="setResolution(1920, 1080)">1080p</button>
                 <button type="button" @click="setResolution(1280, 720)">720p</button>
                 <button type="button" @click="setResolution(640, 360)">360p</button>
+                Width
+                <input type="text" v-model.number="state.output_video_width">
+                Height
+                <input type="text" v-model.number="state.output_video_height">
             </div>
-            <input type="text" v-model.number="state.output_video_width">
-            <input type="text" v-model.number="state.output_video_height">
             <!-- <input type="text" v-model.number="state.output_video_fps"> -->
-             <input type="text" v-model.number="state.scroll_speed">
+             <div>
+                Speed
+                 <input type="text" v-model.number="state.scroll_speed">
+                Time (seconds)
+                 <input type="text" v-model.number="state.scroll_time">
+
+             </div>
             <label>
                 <input type="checkbox" v-model="state.include_scrollin_and_out">
                 Include scroll in/out
             </label>
+            <br>
+            <p>Scroll length {{ ((contentLines.at(-1)?.y || 0) - 360 + (state.include_scrollin_and_out ? 360 * 2 : 0)).toFixed(2) }}</p>
 
-            max scroll {{ state.max_scroll_position }}
+            <p>Video Time {{ (((contentLines.at(-1)?.y || 0) - 360 + (state.include_scrollin_and_out ? 360 * 2 : 0)) / 60 / state.scroll_speed).toFixed(2) }} seconds</p>
+
+            <select v-model="state.selectedMimeType">
+                <option v-for="mimeType in state.available_mime_types" :key="mimeType" :value="mimeType">
+                    {{ mimeType }}
+                </option>
+            </select>
+            <br>
+            <br>
              
-            <button type="button" @click="generate()">Generate</button>
+            <button type="button" @click="demo()" v-if="!state.isRunningDemo">Demo Scroll</button>
+            <button type="button" @click="stopDemo()" v-else>Stop Demo</button>
+            <button type="button" @click="generate()" class="btn-primary">Generate</button>
         </div>
         <div v-if="state.isGenerating">
             <p>Generating video... Please wait.</p>
@@ -57,27 +77,68 @@
 </template>
 
 <script setup>
-import { reactive, onMounted, ref, computed } from "vue";
+import { reactive, onMounted, ref, computed, watch } from "vue";
 
 const state = reactive({
     scrollerContent: '',
     isGenerating: false,
+    isRunningDemo: false,
     cancel_generation: false,
     scrollPosition: 0,
     max_scroll_position: 0,
     show_full_scroll: false,
 
     scroll_speed: 1, // pixels per frame
+    scroll_time: null, // seconds (overrides scroll_speed if set)
     include_scrollin_and_out: true,
     output_video_width: 640,
     output_video_height: 360,
-    output_video_fps: 30
+    output_video_fps: 60,
+
+    selectedMimeType: null,
+
+    available_mime_types: []
+});
+
+onMounted(() => {
+    // Find supported mime type
+    const mimeTypes = [
+        'video/mp4;codecs=h264',
+        'video/webm;codecs=vp9',
+        'video/webm;codecs=vp8',
+        'video/webm',
+    ];
+    
+    for (const mimeType of mimeTypes) {
+        if (MediaRecorder.isTypeSupported(mimeType)) {
+            if(!state.available_mime_types.includes(mimeType)) {
+                state.available_mime_types.push(mimeType);
+            }
+            if (!state.selectedMimeType) {
+                state.selectedMimeType = mimeType;
+                console.log('Using MIME type:', state.selectedMimeType);
+            }
+        }
+    }
 });
 
 const props = defineProps({
     content: {
         type: Array,
         default: () => []
+    }
+});
+
+watch(() => state.scroll_time, (newTime) => {
+    if (newTime) {
+        const totalScrollLength = (contentLines.value.at(-1)?.y || 0) - 360 + (state.include_scrollin_and_out ? 360 * 2 : 0);
+        state.scroll_speed = totalScrollLength / (newTime * state.output_video_fps);
+    }
+});
+watch(() => state.include_scrollin_and_out, () => {
+    if (state.scroll_time) {
+        const totalScrollLength = (contentLines.value.at(-1)?.y || 0) - 360 + (state.include_scrollin_and_out ? 360 * 2 : 0);
+        state.scroll_speed = totalScrollLength / (state.scroll_time * state.output_video_fps);
     }
 });
 
@@ -126,15 +187,21 @@ async function generate(){
     state.scrollPosition = 0;
     recordedChunks = [];
     
-    
     // Wait for DOM to update
     await new Promise(resolve => setTimeout(resolve, 100));
     
     const canvasElement = canvas.value;
-    const stream = canvasElement.captureStream(60); // 30 FPS
+    const stream = canvasElement.captureStream(state.output_video_fps); // 60 FPS
+    
+    
+    if (!state.selectedMimeType) {
+        console.error('No supported MIME type found');
+        state.isGenerating = false;
+        return;
+    }
     
     mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'video/webm;codecs=vp9',
+        mimeType: state.selectedMimeType,
         videoBitsPerSecond: 2500000
     });
     
@@ -149,13 +216,16 @@ async function generate(){
             console.log('Generation was cancelled, no video will be saved.');
             return;
         }
-        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+
+        state.scrollPosition = 0;
+
+        const blob = new Blob(recordedChunks, { type: state.selectedMimeType });
         const url = URL.createObjectURL(blob);
         
         // Create download link
         const a = document.createElement('a');
         a.href = url;
-        a.download = `credits-${Date.now()}.webm`;
+        a.download = `credits-${Date.now()}.${state.selectedMimeType.includes('webm') ? 'webm' : 'mp4'}`;
         a.click();
         
         URL.revokeObjectURL(url);
@@ -165,10 +235,11 @@ async function generate(){
     mediaRecorder.start();
     
     const lineHeight = 20;
-    const maxScroll = (contentLines.value.at(-1).y) - state.output_video_height + (state.include_scrollin_and_out ? state.output_video_height * 2 : 0);
+    const maxScroll = (contentLines.value.at(-1).y) - 360 + (state.include_scrollin_and_out ? 360 * 2 : 0);
     const scrollStep = 1; // pixels per frame (slower = smoother)
     
     const scrollAndRecord = () => {
+            console.log(`Scroll position: ${state.scrollPosition.toFixed(2)} / ${maxScroll.toFixed(2)}`);
         if (state.cancel_generation) {
             mediaRecorder.stop();
             state.isGenerating = false;
@@ -176,7 +247,7 @@ async function generate(){
             console.log('Generation cancelled!');
             return;
         } else if (state.scrollPosition <= maxScroll) {
-            state.scrollPosition += state.scroll_speed;
+            state.scrollPosition += state.scroll_speed; // Scale scroll speed with resolution
             renderSvgToCanvas();
             requestAnimationFrame(scrollAndRecord);
         } else {
@@ -216,6 +287,26 @@ function renderSvgToCanvas(){
     };
     
     img.src = url;
+}
+
+function demo(){
+    state.isRunningDemo = true;
+    state.scrollPosition = 0;
+    const demoScroll = () => {
+        if (!state.isRunningDemo) return;
+        if (state.scrollPosition <= (contentLines.value.at(-1).y) - 360 + (state.include_scrollin_and_out ? 360 * 2 : 0)) {
+            state.scrollPosition += state.scroll_speed
+            requestAnimationFrame(demoScroll);
+        } else {
+            state.isRunningDemo = false;
+        }
+    };
+    demoScroll();
+}
+
+function stopDemo(){
+    state.isRunningDemo = false;
+    state.scrollPosition = 0;
 }
 
 </script>
