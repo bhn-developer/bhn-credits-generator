@@ -185,10 +185,10 @@ async function generate(){
     state.isGenerating = true;
     state.cancel_generation = false;
     state.scrollPosition = 0;
-    recordedChunks = [];
+    recordedChunks.length = 0; // Clear previous recordings
     
     // Wait for DOM to update
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
     const canvasElement = canvas.value;
     const stream = canvasElement.captureStream(state.output_video_fps); // 60 FPS
@@ -234,12 +234,10 @@ async function generate(){
     
     mediaRecorder.start();
     
-    const lineHeight = 20;
     const maxScroll = (contentLines.value.at(-1).y) - 360 + (state.include_scrollin_and_out ? 360 * 2 : 0);
-    const scrollStep = 1; // pixels per frame (slower = smoother)
     
     const scrollAndRecord = () => {
-            console.log(`Scroll position: ${state.scrollPosition.toFixed(2)} / ${maxScroll.toFixed(2)}`);
+            // console.log(`Scroll position: ${state.scrollPosition.toFixed(2)} / ${maxScroll.toFixed(2)}`);
         if (state.cancel_generation) {
             mediaRecorder.stop();
             state.isGenerating = false;
@@ -263,19 +261,19 @@ async function generate(){
     scrollAndRecord();
 }
 
+let ctx = null;
+
 function renderSvgToCanvas(){
-    const svgElement = svg.value;
-    const canvasElement = canvas.value;
-    const ctx = canvasElement.getContext('2d');
+    ctx = canvas.value.getContext('2d');
     
-    const svgData = new XMLSerializer().serializeToString(svgElement);
+    const svgData = new XMLSerializer().serializeToString(svg.value);
     const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(svgBlob);
     const img = new Image();
     
     img.onload = () => {
-        canvasElement.width = state.output_video_width;
-        canvasElement.height = state.output_video_height;
+        canvas.value.width = state.output_video_width;
+        canvas.value.height = state.output_video_height;
         ctx.clearRect(0, 0, state.output_video_width, state.output_video_height);
         ctx.drawImage(img, 0, 0);
         URL.revokeObjectURL(url);
