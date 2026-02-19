@@ -1,25 +1,31 @@
 <template>
     <div v-if="state.loading_members">
         <p>Loading members...</p>
+        <progress></progress>
     </div>
     <div v-else>
-        <input type="text" v-model="state.accessToken" placeholder="Patreon Access Token">
-        <button type="button" @click="getCampaigns()">Get Campaigns</button>
-        <br>
-        <br>
-        <select name="campaigns" id="campaigns" v-model="state.selectedCampaignId">
-            <option v-for="campaign in state.campaigns" :key="campaign.id" :value="campaign.id">
-                {{ campaign.attributes.creation_name }}
-            </option>
-        </select>
-        <br>
-        <br>
-        <button type="button" v-if="state.selectedCampaignId" @click="getActiveMembers()">Get Active Members</button>
-        <br>
-        <br>
-        <button type="button" class="btn-primary" @click="updateList()" v-if="state.members_by_level.length > 0">Next Step</button>
-        <br>
-        <br>
+        <fieldset>
+            <label>Access Token</label>
+            <input type="text" v-model="state.accessToken" style="width:400px;" placeholder="Patreon Access Token">
+        </fieldset>
+        <fieldset v-if="state.accessToken">
+            <button type="button" class="btn" @click="getCampaigns()">Get Campaigns</button>
+        </fieldset>
+        <fieldset v-if="state.campaigns.length">
+            <label>Select Campaign</label>
+            <select name="campaigns" id="campaigns" v-model="state.selectedCampaignId">
+                <option v-for="campaign in state.campaigns" :key="campaign.id" :value="campaign.id">
+                    {{ campaign.attributes.creation_name }}
+                </option>
+            </select>
+        </fieldset>
+        <fieldset v-if="state.selectedCampaignId">
+            <button type="button" class="btn" v-if="state.selectedCampaignId" @click="getActiveMembers()">Get Active Members</button>
+        </fieldset>
+        <fieldset v-if="state.members_by_level.length > 0" class="group">
+                <span style="flex:1;"></span>
+                <button type="button" class="btn-primary" @click="updateList()">Next Step</button>
+        </fieldset>
         <div v-if="state.members_by_level.length > 0">
             <h3>Active Members [{{ state.members_by_level.reduce((acc, tierData) => acc + tierData.members.length, 0) }}]</h3>
             <details>

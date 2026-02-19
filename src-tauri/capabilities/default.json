@@ -10,8 +10,46 @@
     "opener:default",
     {
       "identifier": "http:default",
-      "allow": [{ "url": "https://*" }],
-      "deny": [{ "url": "https://private.tauri.app" }]
-    }
+      "allow": [
+        {
+          "url": "https://*"
+        }
+      ],
+      "deny": [
+        {
+          "url": "https://private.tauri.app"
+        }
+      ]
+    },
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "args": true,
+          "name": "binaries/bhncreditgensidecar",
+          "sidecar": true
+        },
+        {
+          "args": true,
+          "name": "ffmpeg",
+          "cmd": "ffmpeg"
+        }
+      ]
+    },
+    "fs:default",
+    "fs:read-all",
+    "fs:write-all",
+    "fs:allow-rename",
+    "fs:allow-mkdir",
+    "fs:allow-exists",
+    "fs:allow-watch",
+    "fs:read-dirs",
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        "**/*"
+      ]
+    },
+    "dialog:default"
   ]
 }

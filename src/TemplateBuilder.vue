@@ -1,13 +1,17 @@
 <template>
     <div>
         <textarea v-model="state.template"></textarea>
-        <button type="button" class="btn-primary" @click="updateContent()">Send to Generator</button>
+        <div class="group">
+            <button type="button" class="btn" @click="resetTemplate()">Reset Template</button>
+            <span style="flex:1;"></span>
+            <button type="button" class="btn-primary" @click="updateContent()">Send to Generator</button>
+        </div>
     </div>
 </template>
 
 <script setup>
-import { reactive, onMounted, ref, computed, defineProps, defineEmits } from "vue";
-import DefaultTemplate from './default_template.txt?raw';
+import { reactive, onMounted, ref, computed, defineProps, defineEmits, watch } from "vue";
+import DefaultTemplate from './assets/default_template.txt?raw';
 
 const props = defineProps({
     lists: {
@@ -17,10 +21,23 @@ const props = defineProps({
 });
 
 const state = reactive({
-    template: DefaultTemplate,
+    template: '',
 });
 
 const emit = defineEmits(['updateContent']);
+
+onMounted(() => {
+    state.template = localStorage.getItem('template_content') || DefaultTemplate;
+});
+
+watch(() => state.template, (newTemplate) => {
+    localStorage.setItem('template_content', newTemplate);
+});
+
+
+function resetTemplate() {
+    state.template = DefaultTemplate;
+}
 
 function updateContent() {
 
@@ -58,9 +75,9 @@ function updateContent() {
 <style scoped>
 textarea {
     width: 100%;
-    height: 200px;
+    height: 400px;
     margin-bottom: 10px;
-    background-color:antiquewhite;
+    background-color:lightcyan;
     border:solid 1px #ccc;
 }
 </style>

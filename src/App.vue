@@ -17,7 +17,7 @@ import { ref } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 import Generator from "./Generator.vue";
 import Patreon from "./Patreon.vue";
-import TemplateBuilder from "./assets/TemplateBuilder.vue";
+import TemplateBuilder from "./TemplateBuilder.vue";
 
 const lists = ref({});
 const content = ref([]);
@@ -39,13 +39,61 @@ function updateContent(newContent) {
 </script>
 
 <style>
+
+body {
+  font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.group {
+    display:flex;
+    gap:0.25em;
+}
+
+fieldset {
+  border:none;
+  margin:0;
+  padding:0;
+  display:flex;
+  gap:0.25em;
+  align-items:center;
+  margin-bottom:0.25em;
+}
+
+label, .label {
+  font-size:0.8em;
+  font-weight:600;
+}
+
+input[readonly] {
+  background-color:antiquewhite;
+  border:solid 1px #ccc;
+}
+
+hr {
+    margin: 1em 0;
+    border: none;
+    border-top: solid 1px #ccc;
+}
+
+.btn, [class*="btn-"] {
+    background-color: #dddddd;
+    color: black;
+    border: none;
+    padding: 0.5em 1em;
+    cursor: pointer;
+    border-radius:0.25em;
+
+    &:hover {
+        background-image:linear-gradient(#0004, #0004)
+    }
+}
+
 .btn-primary {
     background-color: #007bff;
     color: white;
-    border: none;
-    padding: 10px 20px;
-    cursor: pointer;
 }
+
+
 </style>
 
 <style scoped>
